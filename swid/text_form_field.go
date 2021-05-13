@@ -186,16 +186,17 @@ func (r *textFormFieldRenderer) Refresh() {
 	} else {
 		r.label.Color = theme.PlaceHolderColor()
 	}
-	r.label.Refresh()
 
 	r.hint.TextSize = theme.CaptionTextSize() - 1
 	if !r.widget.textField.focused && r.widget.dirty && r.widget.validationError != nil {
 		r.hint.Text = r.widget.validationError.Error()
 		r.hint.Color = theme.ErrorColor()
+		r.label.Color = theme.ErrorColor()
 	} else {
 		r.hint.Text = r.widget.Hint
 		r.hint.Color = theme.PlaceHolderColor()
 	}
+	r.label.Refresh()
 	r.hint.Refresh()
 }
 
