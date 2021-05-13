@@ -42,14 +42,14 @@ func main() {
 	// w.SetContent(content(ctx))
 
 	notEmptyField := func(n int) *swid.TextFormField {
-		tf := swid.NewTextFormField(fmt.Sprintf("Nombre %d", n), "")
-		tf.Hint = "* Required"
+		tf := swid.NewTextFormField(fmt.Sprintf("Name %d", n), "")
+		tf.Hint = "A hint text"
 		tf.OnSaved = func(s string) {
 			fmt.Println("saved:", s)
 		}
 		tf.Validator = func(s string) error {
-			if s == "" {
-				return errors.New("can't be empty")
+			if s == "wrong" {
+				return errors.New("wrong")
 			}
 			return nil
 		}
