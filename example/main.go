@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 	"github.com/fpabl0/sparky-go"
 	"github.com/fpabl0/sparky-go/scont"
+	"github.com/fpabl0/sparky-go/swid"
 )
 
 const (
@@ -37,6 +39,55 @@ func main() {
 		fmt.Printf("Listo %s\n", firstName)
 	}()
 
+	// w.SetContent(content(ctx))
+
+	notEmptyField := func(n int) *swid.TextFormField {
+		tf := swid.NewTextFormField(fmt.Sprintf("Nombre %d", n), "")
+		tf.Hint = "* Required"
+		tf.OnSaved = func(s string) {
+			fmt.Println("saved:", s)
+		}
+		tf.Validator = func(s string) error {
+			if s == "" {
+				return errors.New("can't be empty")
+			}
+			return nil
+		}
+		return tf
+	}
+
+	f := swid.NewForm(2,
+		notEmptyField(1),
+		notEmptyField(2),
+		notEmptyField(3),
+		notEmptyField(4),
+	)
+
+	f.OnValidationChanged = func(v bool) {
+		fmt.Println("valid: ", v)
+	}
+
+	tf := swid.NewTextField()
+	tf.MaxLength = 4
+
+	w.SetContent(container.NewVBox(
+		f,
+		swid.NewMaskedTextField("+(999) 999-9999", "+(999) 999-9999"),
+		swid.NewMaskedTextField("99/99/99", "dd/MM/yy"),
+		swid.NewRestrictTextField(swid.RestrictInputInteger),
+		swid.NewRestrictTextField(swid.RestrictInputFloat),
+		swid.NewRestrictTextField(swid.RestrictInputEmail),
+		tf,
+		container.NewHBox(
+			f.SubmitButton("Crear", func() { f.Save() }),
+			f.ResetButton("Reset"),
+		),
+	))
+
+	w.ShowAndRun()
+}
+
+func content(ctx sparky.Context) fyne.CanvasObject {
 	list := widget.NewList(
 		func() int {
 			return 10
@@ -53,27 +104,17 @@ func main() {
 		},
 	)
 
-	toggle := false
-	w.SetContent(
-		scont.NewFrame(2, 2,
-			container.NewBorder(widget.NewButton("Press", func() {
-				if toggle {
-					ctx.ShowSuccess("Listo!", "El conductor se ha creado")
-				} else {
-					go func() {
-						resp := <-ctx.ShowPasswordInput("Nueva contraseña", "Ingrese su nueva contraseña", "Confirmar")
-						if resp == nil {
-							return
-						}
-						fmt.Println(*resp)
-					}()
+	return scont.NewFrame(2, 2,
+		container.NewBorder(widget.NewButton("Press", func() {
+			go func() {
+				resp := <-ctx.ShowPasswordInput("Nueva contraseña", "Ingrese su nueva contraseña", "Confirmar")
+				if resp == nil {
+					return
 				}
-				toggle = !toggle
-			}), nil, nil, nil, list),
-		),
+				fmt.Println(*resp)
+			}()
+		}), nil, nil, nil, list),
 	)
-
-	w.ShowAndRun()
 }
 
 // ===============================================================
