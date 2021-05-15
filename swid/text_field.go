@@ -15,9 +15,8 @@ type TextField struct {
 	mask        []rune
 	restriction RestrictInput
 
-	focused   bool
-	onFocus   func()
-	onUnfocus func()
+	focused        bool
+	onFocusChanged func(bool)
 }
 
 // NewTextField creates a new text field.
@@ -76,8 +75,8 @@ func (t *TextField) MinSize() fyne.Size {
 func (t *TextField) FocusGained() {
 	t.focused = true
 	t.Entry.FocusGained()
-	if t.onFocus != nil {
-		t.onFocus()
+	if t.onFocusChanged != nil {
+		t.onFocusChanged(true)
 	}
 }
 
@@ -85,8 +84,8 @@ func (t *TextField) FocusGained() {
 func (t *TextField) FocusLost() {
 	t.focused = false
 	t.Entry.FocusLost()
-	if t.onUnfocus != nil {
-		t.onUnfocus()
+	if t.onFocusChanged != nil {
+		t.onFocusChanged(false)
 	}
 }
 

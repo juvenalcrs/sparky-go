@@ -96,16 +96,15 @@ func (t *TextFormField) setupTextField() {
 		}
 		t.didChange()
 	}
-	t.textField.onFocus = func() {
-		if t.labelAnim != nil {
+	t.textField.onFocusChanged = func(focused bool) {
+		if t.labelAnim != nil && focused {
 			t.labelAnim.Forward()
 		}
-		t.dirty = true
-		t.Refresh()
-	}
-	t.textField.onUnfocus = func() {
-		if t.labelAnim != nil && t.textField.Text == "" {
+		if t.labelAnim != nil && t.textField.Text == "" && !focused {
 			t.labelAnim.Reverse()
+		}
+		if focused {
+			t.dirty = true
 		}
 		t.Refresh()
 	}
