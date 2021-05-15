@@ -43,6 +43,9 @@ func main() {
 
 	notEmptyField := func(n int) *swid.TextFormField {
 		tf := swid.NewTextFormField(fmt.Sprintf("Name %d", n), "")
+		if n == 1 {
+			tf.SetText("wrong")
+		}
 		tf.Hint = "A hint text"
 		tf.OnSaved = func(s string) {
 			fmt.Println("saved:", s)

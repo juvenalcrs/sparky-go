@@ -51,6 +51,9 @@ func (t *TextFormField) Text() string {
 
 // SetText manually sets the text of the TextFormField to the given text value.
 func (t *TextFormField) SetText(text string) {
+	if text != "" {
+		t.dirty = true
+	}
 	t.textField.Text = text
 	t.Refresh()
 	if t.labelAnim != nil && !t.textField.focused && t.textField.Text == "" {
@@ -250,7 +253,7 @@ func (r *textFormFieldRenderer) copyToTextField() {
 
 // InsetPad for Label and Hint text inside the field
 func fieldInsetPad() float32 {
-	return 2*theme.Padding() - 1
+	return 2 * theme.Padding()
 }
 
 func hintTextSize() float32 {
