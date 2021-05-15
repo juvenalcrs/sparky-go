@@ -43,6 +43,7 @@ func main() {
 
 	notEmptyField := func(n int) *swid.TextFormField {
 		tf := swid.NewTextFormField(fmt.Sprintf("Name %d", n), "")
+		tf.Placeholder = "Write your name"
 		if n == 1 {
 			tf.SetText("wrong")
 		}
@@ -50,8 +51,12 @@ func main() {
 		tf.OnSaved = func(s string) {
 			fmt.Println("saved:", s)
 		}
+		forbidden := "wrong"
+		if n == 2 {
+			forbidden = ""
+		}
 		tf.Validator = func(s string) error {
-			if s == "wrong" {
+			if s == forbidden {
 				return errors.New("wrong")
 			}
 			return nil

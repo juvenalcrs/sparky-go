@@ -14,7 +14,7 @@ type TextFormField struct {
 
 	Label       string
 	TextStyle   fyne.TextStyle
-	PlaceHolder string
+	Placeholder string
 	Hint        string
 	Password    bool
 	Wrapping    fyne.TextWrap
@@ -98,6 +98,9 @@ func (t *TextFormField) setupTextField() {
 			t.OnChanged(s)
 		}
 		t.didChange()
+		if s == "" {
+			t.Refresh()
+		}
 	}
 	t.textField.onFocusChanged = func(focused bool) {
 		if t.labelAnim != nil && focused {
@@ -239,7 +242,12 @@ func (r *textFormFieldRenderer) copyToTextField() {
 	r.widget.textField.ActionItem = r.widget.ActionItem
 	r.widget.textField.Wrapping = r.widget.Wrapping
 	r.widget.textField.Password = r.widget.Password
-	r.widget.textField.PlaceHolder = r.widget.PlaceHolder
+	// TODO change SetPlaceholder by r.widget.textField.PlaceHolder when it is fixed in fyne
+	if r.widget.textField.focused && r.widget.textField.Text == "" {
+		r.widget.textField.SetPlaceHolder(r.widget.Placeholder)
+	} else {
+		r.widget.textField.SetPlaceHolder("")
+	}
 	r.widget.textField.Wrapping = r.widget.Wrapping
 	r.widget.textField.MaxLength = r.widget.MaxLength
 	r.widget.textField.Validator = r.widget.Validator
