@@ -1,6 +1,11 @@
 package swid
 
-import "fyne.io/fyne/v2"
+import (
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
+)
 
 // FormField defines a widget that can be used inside a Form.
 type FormField interface {
@@ -11,12 +16,29 @@ type FormField interface {
 
 	setParentForm(f *Form)
 	didChange()
-	reset()
 }
 
 // BaseFormField defines a base form field.
 type BaseFormField struct {
-	form *Form
+	widget.DisableableWidget
+	Label string
+	Hint  string
+
+	labelAnim       *labelAnimation
+	dirty           bool
+	validationError error
+	form            *Form
+
+	impl fyne.Widget
+}
+
+// ExtendBaseFormField extends a base form field.
+func (b *BaseFormField) ExtendBaseFormField(w fyne.Widget) {
+	if b.impl != nil {
+		return
+	}
+	b.ExtendBaseWidget(w)
+	b.impl = w
 }
 
 func (b *BaseFormField) setParentForm(f *Form) {
@@ -30,9 +52,210 @@ func (b *BaseFormField) didChange() {
 	b.form.fieldDidChange()
 }
 
-func (b *BaseFormField) reset() {
-	if b.form == nil {
+// ===============================================================
+// BaseRenderer
+// ===============================================================
+
+// CreateBaseRenderer creates a base form field renderer.
+func (b *BaseFormField) CreateBaseRenderer(
+	labelText, hintText string, fieldWidget fyne.Widget,
+	isFieldEmpty func() bool,
+	isFieldFocused func() bool,
+	updateInternalField func(),
+) fyne.WidgetRenderer {
+	labelBg := canvas.NewRectangle(theme.InputBackgroundColor())
+	label := canvas.NewText(labelText, theme.PlaceHolderColor())
+	hint := canvas.NewText(hintText, theme.PlaceHolderColor())
+	hint.TextSize = hintTextSize()
+	return &formFieldRenderer{
+		labelBg:             labelBg,
+		label:               label,
+		fieldWidget:         fieldWidget,
+		hint:                hint,
+		isFieldEmpty:        isFieldEmpty,
+		isFieldFocused:      isFieldFocused,
+		updateInternalField: updateInternalField,
+		formField:           b,
+		objects:             []fyne.CanvasObject{labelBg, label, fieldWidget, hint},
+	}
+}
+
+type formFieldRenderer struct {
+	labelBg     *canvas.Rectangle
+	label       *canvas.Text
+	fieldWidget fyne.Widget
+	hint        *canvas.Text
+
+	isFieldEmpty        func() bool
+	isFieldFocused      func() bool
+	updateInternalField func()
+
+	formField *BaseFormField
+	objects   []fyne.CanvasObject
+}
+
+func (r *formFieldRenderer) Destroy() {
+	if r.formField.labelAnim != nil {
+		r.formField.labelAnim.Stop()
+	}
+}
+
+func (r *formFieldRenderer) Layout(size fyne.Size) {
+	insetPad := fieldInsetPad()
+	stackedLabelTextSize, _ := stackedLabelProps()
+	stackedlabelMinHeight := fyne.MeasureText(r.label.Text, stackedLabelTextSize, r.label.TextStyle).Height
+	r.labelBg.Move(fyne.NewPos(0, 0))
+	r.labelBg.Resize(fyne.NewSize(size.Width, stackedlabelMinHeight-theme.InputBorderSize()))
+
+	// If label animation is nil, it means we are in initial state, so setup
+	if r.formField.labelAnim == nil {
+		r.formField.labelAnim = newLabelAnimation(r.label, r.formField.impl)
+		labelPosY := float32(0)
+		if !r.isFieldEmpty() {
+			r.label.TextSize, labelPosY = stackedLabelProps()
+			r.label.Move(fyne.NewPos(insetPad, labelPosY))
+		} else {
+			r.label.TextSize, labelPosY = nonStackedLabelProps()
+			r.label.Move(fyne.NewPos(insetPad, labelPosY))
+		}
+	}
+
+	// Use the label.MinSize() to use the current text size.
+	r.label.Resize(fyne.NewSize(size.Width-2*insetPad, r.label.MinSize().Height))
+
+	ypos := stackedlabelMinHeight - theme.InputBorderSize()*2
+	fieldMinHeight := r.fieldWidget.MinSize().Height
+	r.fieldWidget.Move(fyne.NewPos(0, ypos))
+	r.fieldWidget.Resize(fyne.NewSize(size.Width, fieldMinHeight))
+
+	ypos += fieldMinHeight
+	r.hint.Move(fyne.NewPos(insetPad, ypos))
+	r.hint.Resize(fyne.NewSize(size.Width-2*insetPad, r.hint.MinSize().Height))
+}
+
+func (r *formFieldRenderer) MinSize() fyne.Size {
+	min := r.fieldWidget.MinSize()
+	stackedLabelTextSize, _ := stackedLabelProps()
+	labelMin := fyne.MeasureText(r.label.Text, stackedLabelTextSize, r.label.TextStyle)
+	hintMin := r.hint.MinSize()
+	min.Height += labelMin.Height - theme.InputBorderSize()*2
+	min.Height += hintMin.Height
+	min.Width = fyne.Max(min.Width, theme.Padding()*4+labelMin.Width)
+	min.Width = fyne.Max(min.Width, theme.Padding()*4+hintMin.Width)
+	return min
+}
+
+func (r *formFieldRenderer) Objects() []fyne.CanvasObject {
+	return r.objects
+}
+
+func (r *formFieldRenderer) Refresh() {
+	if r.isFieldFocused() || !r.isFieldEmpty() {
+		r.formField.dirty = true
+	}
+	if r.formField.labelAnim != nil && r.isFieldFocused() {
+		r.formField.labelAnim.Forward()
+	}
+	if r.formField.labelAnim != nil && r.isFieldEmpty() && !r.isFieldFocused() {
+		r.formField.labelAnim.Reverse()
+	}
+
+	r.updateInternalField()
+
+	r.labelBg.FillColor = theme.InputBackgroundColor()
+	r.labelBg.Refresh()
+
+	r.label.Text = r.formField.Label
+	if r.isFieldFocused() {
+		r.label.Color = theme.PrimaryColor()
+	} else {
+		r.label.Color = theme.PlaceHolderColor()
+	}
+
+	r.hint.TextSize = hintTextSize()
+	if !r.isFieldFocused() && r.formField.dirty && r.formField.validationError != nil {
+		r.hint.Text = r.formField.validationError.Error()
+		r.hint.Color = theme.ErrorColor()
+		r.label.Color = theme.ErrorColor()
+	} else {
+		r.hint.Text = r.formField.Hint
+		r.hint.Color = theme.PlaceHolderColor()
+	}
+	r.label.Refresh()
+	r.hint.Refresh()
+}
+
+// InsetPad for Label and Hint text inside the field
+func fieldInsetPad() float32 {
+	return 2 * theme.Padding()
+}
+
+func hintTextSize() float32 {
+	return theme.CaptionTextSize() - 1
+}
+
+func stackedLabelProps() (textSize float32, posY float32) {
+	return theme.CaptionTextSize(), theme.InputBorderSize() * 2
+}
+
+func nonStackedLabelProps() (textSize float32, posY float32) {
+	return theme.TextSize(), theme.InputBorderSize() * 7
+}
+
+// ===============================================================
+// Label animation
+// ===============================================================
+
+type labelAnimation struct {
+	anim  *fyne.Animation
+	label *canvas.Text
+	w     fyne.Widget
+}
+
+func newLabelAnimation(label *canvas.Text, w fyne.Widget) *labelAnimation {
+	return &labelAnimation{
+		anim:  &fyne.Animation{Duration: canvas.DurationShort},
+		label: label,
+		w:     w,
+	}
+}
+
+func (a *labelAnimation) animate(reverse bool) {
+	startTextSize, startPosY := nonStackedLabelProps()
+	endTextSize, endPosY := stackedLabelProps()
+	deltaTextSize := endTextSize - startTextSize
+	deltaPosY := endPosY - startPosY
+	if reverse {
+		startTextSize, endTextSize = endTextSize, startTextSize
+		startPosY, endPosY = endPosY, startPosY
+		deltaTextSize = -deltaTextSize
+		deltaPosY = -deltaPosY
+	}
+	if a.label.Position().Y == endPosY {
+		// return because it is already in the final position.
 		return
 	}
-	b.form.fieldDidChange()
+	insetPad := fieldInsetPad()
+	a.label.Move(fyne.NewPos(insetPad, startPosY))
+	a.anim.Tick = func(v float32) {
+		a.label.TextSize = startTextSize + deltaTextSize*v
+		a.label.Move(fyne.NewPos(insetPad, startPosY+deltaPosY*v))
+		a.label.Refresh()
+	}
+	a.anim.Curve = fyne.AnimationEaseOut
+	a.anim.Start()
+}
+
+func (a *labelAnimation) Forward() {
+	a.anim.Stop()
+	a.animate(false)
+}
+
+func (a *labelAnimation) Reverse() {
+	a.anim.Stop()
+	a.animate(true)
+}
+
+func (a *labelAnimation) Stop() {
+	a.anim.Stop()
 }
