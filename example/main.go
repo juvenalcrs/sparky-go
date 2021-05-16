@@ -42,25 +42,26 @@ func main() {
 	// w.SetContent(content(ctx))
 
 	notEmptyField := func(n int) *swid.TextFormField {
-		tf := swid.NewTextFormField(fmt.Sprintf("Name %d", n), "")
+		forbidden := "wrong"
+		if n == 2 {
+			forbidden = ""
+		}
+
+		tf := swid.NewTextFormField(fmt.Sprintf("Name %d", n), "").
+			WithValidator(func(s string) error {
+				if s == forbidden {
+					return errors.New("wrong")
+				}
+				return nil
+			}).
+			WithOnSaved(func(s string) { fmt.Println("saved:", s) })
+
 		tf.Placeholder = "Write your name"
 		if n == 1 {
 			tf.SetText("wrong")
 		}
 		tf.Hint = "A hint text"
-		tf.OnSaved = func(s string) {
-			fmt.Println("saved:", s)
-		}
-		forbidden := "wrong"
-		if n == 2 {
-			forbidden = ""
-		}
-		tf.Validator = func(s string) error {
-			if s == forbidden {
-				return errors.New("wrong")
-			}
-			return nil
-		}
+
 		return tf
 	}
 
