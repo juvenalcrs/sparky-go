@@ -101,21 +101,21 @@ func (r *formFieldRenderer) Destroy() {
 }
 
 func (r *formFieldRenderer) Layout(size fyne.Size) {
-	insetPad := fieldInsetPad()
-	stackedLabelTextSize, _ := stackedLabelProps()
+	insetPad := r.fieldInsetPad()
+	stackedLabelTextSize, _ := r.stackedLabelProps()
 	stackedlabelMinHeight := fyne.MeasureText(r.label.Text, stackedLabelTextSize, r.label.TextStyle).Height
 	r.labelBg.Move(fyne.NewPos(0, 0))
 	r.labelBg.Resize(fyne.NewSize(size.Width, stackedlabelMinHeight-theme.InputBorderSize()))
 
 	// If label animation is nil, it means we are in initial state, so setup
 	if r.formField.labelAnim == nil {
-		r.formField.labelAnim = newLabelAnimation(r.label, r.formField.impl)
+		r.formField.labelAnim = r.newLabelAnimation()
 		labelPosY := float32(0)
 		if !r.isFieldEmpty() {
-			r.label.TextSize, labelPosY = stackedLabelProps()
+			r.label.TextSize, labelPosY = r.stackedLabelProps()
 			r.label.Move(fyne.NewPos(insetPad, labelPosY))
 		} else {
-			r.label.TextSize, labelPosY = nonStackedLabelProps()
+			r.label.TextSize, labelPosY = r.nonStackedLabelProps()
 			r.label.Move(fyne.NewPos(insetPad, labelPosY))
 		}
 	}
@@ -135,7 +135,7 @@ func (r *formFieldRenderer) Layout(size fyne.Size) {
 
 func (r *formFieldRenderer) MinSize() fyne.Size {
 	min := r.fieldWidget.MinSize()
-	stackedLabelTextSize, _ := stackedLabelProps()
+	stackedLabelTextSize, _ := r.stackedLabelProps()
 	labelMin := fyne.MeasureText(r.label.Text, stackedLabelTextSize, r.label.TextStyle)
 	hintMin := r.hint.MinSize()
 	min.Height += labelMin.Height - theme.InputBorderSize()*2
@@ -186,20 +186,23 @@ func (r *formFieldRenderer) Refresh() {
 }
 
 // InsetPad for Label and Hint text inside the field
-func fieldInsetPad() float32 {
+func (r *formFieldRenderer) fieldInsetPad() float32 {
 	return 2 * theme.Padding()
+}
+
+func (r *formFieldRenderer) stackedLabelProps() (textSize float32, posY float32) {
+	return theme.CaptionTextSize(), theme.InputBorderSize() * 2
+}
+
+func (r *formFieldRenderer) nonStackedLabelProps() (textSize float32, posY float32) {
+	textSize = theme.TextSize()
+	nonStackedMinHeight := fyne.MeasureText(r.label.Text, textSize, r.label.TextStyle).Height
+	return textSize,
+		(r.MinSize().Height - theme.InputBorderSize() - r.hint.MinSize().Height - nonStackedMinHeight) / 2
 }
 
 func hintTextSize() float32 {
 	return theme.CaptionTextSize() - 1
-}
-
-func stackedLabelProps() (textSize float32, posY float32) {
-	return theme.CaptionTextSize(), theme.InputBorderSize() * 2
-}
-
-func nonStackedLabelProps() (textSize float32, posY float32) {
-	return theme.TextSize(), theme.InputBorderSize() * 7
 }
 
 // ===============================================================
@@ -207,22 +210,20 @@ func nonStackedLabelProps() (textSize float32, posY float32) {
 // ===============================================================
 
 type labelAnimation struct {
-	anim  *fyne.Animation
-	label *canvas.Text
-	w     fyne.Widget
+	anim     *fyne.Animation
+	renderer *formFieldRenderer
 }
 
-func newLabelAnimation(label *canvas.Text, w fyne.Widget) *labelAnimation {
+func (r *formFieldRenderer) newLabelAnimation() *labelAnimation {
 	return &labelAnimation{
-		anim:  &fyne.Animation{Duration: canvas.DurationShort},
-		label: label,
-		w:     w,
+		anim:     &fyne.Animation{Duration: canvas.DurationShort},
+		renderer: r,
 	}
 }
 
 func (a *labelAnimation) animate(reverse bool) {
-	startTextSize, startPosY := nonStackedLabelProps()
-	endTextSize, endPosY := stackedLabelProps()
+	startTextSize, startPosY := a.renderer.nonStackedLabelProps()
+	endTextSize, endPosY := a.renderer.stackedLabelProps()
 	deltaTextSize := endTextSize - startTextSize
 	deltaPosY := endPosY - startPosY
 	if reverse {
@@ -231,16 +232,16 @@ func (a *labelAnimation) animate(reverse bool) {
 		deltaTextSize = -deltaTextSize
 		deltaPosY = -deltaPosY
 	}
-	if a.label.Position().Y == endPosY {
+	if a.renderer.label.Position().Y == endPosY {
 		// return because it is already in the final position.
 		return
 	}
-	insetPad := fieldInsetPad()
-	a.label.Move(fyne.NewPos(insetPad, startPosY))
+	insetPad := a.renderer.fieldInsetPad()
+	a.renderer.label.Move(fyne.NewPos(insetPad, startPosY))
 	a.anim.Tick = func(v float32) {
-		a.label.TextSize = startTextSize + deltaTextSize*v
-		a.label.Move(fyne.NewPos(insetPad, startPosY+deltaPosY*v))
-		a.label.Refresh()
+		a.renderer.label.TextSize = startTextSize + deltaTextSize*v
+		a.renderer.label.Move(fyne.NewPos(insetPad, startPosY+deltaPosY*v))
+		a.renderer.label.Refresh()
 	}
 	a.anim.Curve = fyne.AnimationEaseOut
 	a.anim.Start()
