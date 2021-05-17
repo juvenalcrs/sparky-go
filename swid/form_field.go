@@ -5,6 +5,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
@@ -65,7 +66,7 @@ func (b *BaseFormField) CreateBaseRenderer(
 	isFieldFocused func() bool,
 	updateInternalField func(),
 ) fyne.WidgetRenderer {
-	labelBg := canvas.NewRectangle(theme.InputBackgroundColor())
+	labelBg := newLabelBackground(theme.InputBackgroundColor(), fieldWidget)
 	label := canvas.NewText(labelText, theme.PlaceHolderColor())
 	hint := canvas.NewText(hintText, theme.PlaceHolderColor())
 	hint.TextSize = hintTextSize()
@@ -84,7 +85,7 @@ func (b *BaseFormField) CreateBaseRenderer(
 }
 
 type formFieldRenderer struct {
-	labelBg     *canvas.Rectangle
+	labelBg     *labelBackground
 	label       *canvas.Text
 	fieldWidget fyne.Widget
 	hint        *canvas.Text
@@ -207,6 +208,107 @@ func (r *formFieldRenderer) nonStackedLabelProps() (textSize float32, posY float
 
 func hintTextSize() float32 {
 	return theme.CaptionTextSize() - 1
+}
+
+// ===============================================================
+// Label Background
+// ===============================================================
+
+type labelBackground struct {
+	widget.BaseWidget
+	FillColor color.Color
+
+	hovered     bool
+	hoverable   desktop.Hoverable
+	cursor      desktop.Cursor
+	fieldWidget fyne.Widget
+}
+
+func newLabelBackground(color color.Color, fieldWidget fyne.Widget) *labelBackground {
+	b := &labelBackground{}
+	b.ExtendBaseWidget(b)
+	b.FillColor = color
+	b.fieldWidget = fieldWidget
+	b.cursor = desktop.DefaultCursor
+	if cursorable, ok := fieldWidget.(desktop.Cursorable); ok {
+		b.cursor = cursorable.Cursor()
+	}
+	if hoverable, ok := fieldWidget.(desktop.Hoverable); ok {
+		b.hoverable = hoverable
+	}
+	return b
+}
+
+func (b *labelBackground) Cursor() desktop.Cursor {
+	return b.cursor
+}
+
+func (b *labelBackground) MouseIn(ev *desktop.MouseEvent) {
+	if b.hoverable == nil {
+		return
+	}
+	b.hoverable.MouseIn(ev)
+	b.hovered = true
+	b.Refresh()
+}
+
+func (b *labelBackground) MouseMoved(*desktop.MouseEvent) {}
+
+func (b *labelBackground) MouseOut() {
+	if b.hoverable == nil {
+		return
+	}
+	b.hoverable.MouseOut()
+	b.hovered = false
+	b.Refresh()
+}
+
+func (b *labelBackground) Tapped(ev *fyne.PointEvent) {
+	if focusable, ok := b.fieldWidget.(fyne.Focusable); ok {
+		cnv := fyne.CurrentApp().Driver().CanvasForObject(b)
+		cnv.Focus(focusable)
+	}
+	if tappable, ok := b.fieldWidget.(fyne.Tappable); ok {
+		tappable.Tapped(ev)
+	}
+}
+
+func (b *labelBackground) CreateRenderer() fyne.WidgetRenderer {
+	b.ExtendBaseWidget(b)
+	rect := canvas.NewRectangle(b.FillColor)
+	return &labelBackgroundRenderer{
+		rect:    rect,
+		widget:  b,
+		objects: []fyne.CanvasObject{rect},
+	}
+}
+
+type labelBackgroundRenderer struct {
+	rect    *canvas.Rectangle
+	widget  *labelBackground
+	objects []fyne.CanvasObject
+}
+
+func (r *labelBackgroundRenderer) Destroy() {}
+
+func (r *labelBackgroundRenderer) Layout(size fyne.Size) {
+	r.rect.Resize(size)
+}
+
+func (r *labelBackgroundRenderer) MinSize() fyne.Size {
+	return r.rect.MinSize()
+}
+
+func (r *labelBackgroundRenderer) Objects() []fyne.CanvasObject {
+	return r.objects
+}
+
+func (r *labelBackgroundRenderer) Refresh() {
+	r.rect.FillColor = r.widget.FillColor
+	if r.widget.hovered {
+		r.rect.FillColor = theme.HoverColor()
+	}
+	r.rect.Refresh()
 }
 
 // ===============================================================

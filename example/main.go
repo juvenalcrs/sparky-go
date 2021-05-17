@@ -61,14 +61,6 @@ func main() {
 			tf.SetText("wrong")
 		}
 		tf.Hint = "A hint text"
-
-		if n == 2 {
-			go func() {
-				time.Sleep(2 * time.Second)
-				tf.SetText("hello")
-			}()
-		}
-
 		return tf
 	}
 
@@ -77,8 +69,6 @@ func main() {
 		notEmptyField(2),
 		notEmptyField(3),
 		notEmptyField(4),
-		swid.NewSelectFormField("Car type", "", []string{"Audi", "Toyota"}).
-			WithOnSaved(func(s string) { fmt.Println(s) }),
 		swid.NewSelectEntryFormField("Computers", "", []string{"Mac", "Windows"}).
 			WithValidator(func(s string) error {
 				if s == "" {
@@ -86,6 +76,8 @@ func main() {
 				}
 				return nil
 			}),
+		swid.NewSelectFormField("Car type", "", []string{"Audi", "Toyota"}).
+			WithOnSaved(func(s string) { fmt.Println(s) }),
 	)
 
 	f.OnValidationChanged = func(v bool) {
