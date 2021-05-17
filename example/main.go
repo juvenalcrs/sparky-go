@@ -64,6 +64,13 @@ func main() {
 		return tf
 	}
 
+	pf := swid.NewPasswordTextFormField("Password", "1234")
+	pf.Hint = "Your password"
+
+	mf := swid.NewMaskedTextFormField("Masked", "", "99/99", "99/99")
+	mf.Hint = "A masked form field"
+	mf.ActionItem = widget.NewIcon(theme.ComputerIcon())
+
 	sef := swid.NewSelectEntryFormField("OS", "", []string{"Mac", "Windows"}).
 		WithValidator(func(s string) error {
 			if s == "" {
@@ -78,12 +85,10 @@ func main() {
 	sf.Hint = "Your car"
 
 	f := swid.NewForm(2,
-		notEmptyField(1),
-		notEmptyField(2),
-		notEmptyField(3),
-		notEmptyField(4),
-		sef,
-		sf,
+		notEmptyField(1), notEmptyField(2),
+		notEmptyField(3), notEmptyField(4),
+		pf, mf,
+		sef, sf,
 	)
 
 	f.OnValidationChanged = func(v bool) {

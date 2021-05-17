@@ -10,7 +10,6 @@ type TextFormField struct {
 
 	TextStyle   fyne.TextStyle
 	Placeholder string
-	Password    bool
 	Wrapping    fyne.TextWrap
 	Validator   fyne.StringValidator
 	// ActionItem is a small item which is displayed at the outer right of the entry (like a password revealer)
@@ -20,8 +19,9 @@ type TextFormField struct {
 	OnChanged func(s string)
 	OnSaved   func(s string)
 
-	textField   *TextField
-	initialText string
+	textField       *TextField
+	initialText     string
+	isPasswordField bool
 }
 
 // NewTextFormField creates a new special text field for Forms.
@@ -32,6 +32,35 @@ func NewTextFormField(label, initialText string) *TextFormField {
 	t.Wrapping = fyne.TextTruncate
 	t.initialText = initialText
 	t.setupTextField()
+	return t
+}
+
+// NewRestrictTextFormField creates a new text form field that accepts an input
+// type.
+func NewRestrictTextFormField(label, initialText string, input RestrictInput) *TextFormField {
+	t := NewTextFormField(label, initialText)
+	t.textField.restriction = input
+	return t
+}
+
+// NewPasswordTextFormField creates a new password text field.
+func NewPasswordTextFormField(label, initialText string) *TextFormField {
+	t := NewTextFormField(label, initialText)
+	t.isPasswordField = true
+	t.textField.Password = true
+	return t
+}
+
+// NewMaskedTextFormField creates a new text form field with a mask.
+// Mask definitions:
+//
+//  9: Represents a numeric character (0-9)
+//  a: Represents an alpha character (A-Z,a-z)
+//  *: Represents an alphanumeric character (A-Z,a-z,0-9)
+func NewMaskedTextFormField(label, initialText, mask, placeHolder string) *TextFormField {
+	t := NewTextFormField(label, initialText)
+	t.Placeholder = placeHolder
+	t.textField.mask = []rune(mask)
 	return t
 }
 
@@ -128,6 +157,9 @@ func (t *TextFormField) setupTextField() {
 func (t *TextFormField) CreateRenderer() fyne.WidgetRenderer {
 	t.ExtendBaseFormField(t)
 
+	if !t.isPasswordField {
+		t.textField.ActionItem = t.ActionItem
+	}
 	t.textField.Validator = t.Validator
 	t.textField.Validate() // validates as soon as it is created
 
@@ -141,9 +173,11 @@ func (t *TextFormField) CreateRenderer() fyne.WidgetRenderer {
 
 	updateInternalField := func() {
 		t.textField.TextStyle = t.TextStyle
-		t.textField.ActionItem = t.ActionItem
 		t.textField.Wrapping = t.Wrapping
-		t.textField.Password = t.Password
+		if !t.isPasswordField {
+			// REVIEW this won't work until it is fixed in Fyne.
+			t.textField.ActionItem = t.ActionItem
+		}
 		// TODO change SetPlaceholder by r.widget.textField.PlaceHolder when it is fixed in fyne
 		if t.textField.focused && t.textField.Text == "" {
 			t.textField.SetPlaceHolder(t.Placeholder)
