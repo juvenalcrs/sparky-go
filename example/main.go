@@ -64,20 +64,26 @@ func main() {
 		return tf
 	}
 
+	sef := swid.NewSelectEntryFormField("OS", "", []string{"Mac", "Windows"}).
+		WithValidator(func(s string) error {
+			if s == "" {
+				return errors.New("* required")
+			}
+			return nil
+		})
+	sef.Hint = "Your favorite OS"
+
+	sf := swid.NewSelectFormField("Car", "", []string{"Audi", "Toyota"}).
+		WithOnSaved(func(s string) { fmt.Println(s) })
+	sf.Hint = "Your car"
+
 	f := swid.NewForm(2,
 		notEmptyField(1),
 		notEmptyField(2),
 		notEmptyField(3),
 		notEmptyField(4),
-		swid.NewSelectEntryFormField("Computers", "", []string{"Mac", "Windows"}).
-			WithValidator(func(s string) error {
-				if s == "" {
-					return errors.New("* required")
-				}
-				return nil
-			}),
-		swid.NewSelectFormField("Car type", "", []string{"Audi", "Toyota"}).
-			WithOnSaved(func(s string) { fmt.Println(s) }),
+		sef,
+		sf,
 	)
 
 	f.OnValidationChanged = func(v bool) {
