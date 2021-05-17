@@ -1,6 +1,8 @@
 package swid
 
 import (
+	"image/color"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/theme"
@@ -72,6 +74,7 @@ func (b *BaseFormField) CreateBaseRenderer(
 		label:               label,
 		fieldWidget:         fieldWidget,
 		hint:                hint,
+		labelBgColor:        func() color.Color { return theme.InputBackgroundColor() },
 		isFieldEmpty:        isFieldEmpty,
 		isFieldFocused:      isFieldFocused,
 		updateInternalField: updateInternalField,
@@ -86,6 +89,7 @@ type formFieldRenderer struct {
 	fieldWidget fyne.Widget
 	hint        *canvas.Text
 
+	labelBgColor        func() color.Color
 	isFieldEmpty        func() bool
 	isFieldFocused      func() bool
 	updateInternalField func()
@@ -153,7 +157,7 @@ func (r *formFieldRenderer) Refresh() {
 	if r.isFieldFocused() || !r.isFieldEmpty() {
 		r.formField.dirty = true
 	}
-	if r.formField.labelAnim != nil && r.isFieldFocused() {
+	if r.formField.labelAnim != nil && (r.isFieldFocused() || !r.isFieldEmpty()) {
 		r.formField.labelAnim.Forward()
 	}
 	if r.formField.labelAnim != nil && r.isFieldEmpty() && !r.isFieldFocused() {
@@ -162,7 +166,7 @@ func (r *formFieldRenderer) Refresh() {
 
 	r.updateInternalField()
 
-	r.labelBg.FillColor = theme.InputBackgroundColor()
+	r.labelBg.FillColor = r.labelBgColor()
 	r.labelBg.Refresh()
 
 	r.label.Text = r.formField.Label
