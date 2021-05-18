@@ -14,6 +14,7 @@ import (
 
 	"github.com/fpabl0/sparky-go"
 	"github.com/fpabl0/sparky-go/scont"
+	"github.com/fpabl0/sparky-go/svalid"
 	"github.com/fpabl0/sparky-go/swid"
 )
 
@@ -26,6 +27,10 @@ func main() {
 	// a.Settings().SetTheme(theme.DarkTheme())
 	w := a.NewWindow("hello")
 	w.Resize(fyne.NewSize(500, 400))
+
+	svalid.ConfigErrMessages(&svalid.ErrorMessages{
+		NotEmpty: "* Campo requerido",
+	})
 
 	ctx := sparky.NewContext(w)
 	ctx.PutValue(keyFirstName, "Pablo")
@@ -72,12 +77,7 @@ func main() {
 	mf.ActionItem = widget.NewIcon(theme.ComputerIcon())
 
 	sef := swid.NewSelectEntryFormField("OS", "", []string{"Mac", "Windows"}).
-		WithValidator(func(s string) error {
-			if s == "" {
-				return errors.New("* required")
-			}
-			return nil
-		})
+		WithValidator(svalid.NotEmpty())
 	sef.Hint = "Your favorite OS"
 
 	sf := swid.NewSelectFormField("Car", "", []string{"Audi", "Toyota"}).
