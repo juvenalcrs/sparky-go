@@ -17,10 +17,13 @@ func NewFrameLayout(border *themedwid.ThemedBorder, margin, padding float32) fyn
 }
 
 func (l *frameLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
-	l.border.Move(fyne.NewPos(l.margin, l.margin))
-	l.border.Resize(fyne.NewSize(size.Width-2*l.margin, size.Height-2*l.margin))
+	halfStroke := l.border.StrokeWidth() / 2
+	stroke := l.border.StrokeWidth()
 
-	insetPad := l.margin + l.border.StrokeWidth() + l.padding
+	l.border.Move(fyne.NewPos(l.margin+halfStroke, l.margin+halfStroke))
+	l.border.Resize(fyne.NewSize(size.Width-2*l.margin-stroke, size.Height-2*l.margin-stroke))
+
+	insetPad := l.margin + stroke + l.padding
 	contentPos := fyne.NewPos(insetPad, insetPad)
 	contentSize := fyne.NewSize(size.Width-2*insetPad, size.Height-2*insetPad)
 	for _, child := range objects {
@@ -43,6 +46,6 @@ func (l *frameLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 	}
 
 	insetPad := l.margin + l.border.StrokeWidth() + l.padding
-	contentMin = contentMin.Add(fyne.NewSize(insetPad, insetPad))
+	contentMin = contentMin.Add(fyne.NewSize(2*insetPad, 2*insetPad))
 	return contentMin
 }

@@ -33,7 +33,7 @@ func (b *ThemedBorder) CreateRenderer() fyne.WidgetRenderer {
 	b.ExtendBaseWidget(b)
 	border := canvas.NewRectangle(color.Transparent)
 	border.StrokeWidth = b.strokeWidth
-	border.StrokeColor = theme.ErrorColor()
+	border.StrokeColor = color.Transparent
 	r := &themedBorderRenderer{
 		border:  border,
 		objects: []fyne.CanvasObject{border},

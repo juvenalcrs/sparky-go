@@ -1,5 +1,5 @@
-fyne.io/fyne/v2 v2.0.3-rc2.0.20210510195052-76e0133958e8 h1:UAFCdI89J4G3hZ4V32G5rbherxozlE3/aRxP37ocSEo=
-fyne.io/fyne/v2 v2.0.3-rc2.0.20210510195052-76e0133958e8/go.mod h1:nWcI1QwyC299Sx06GSFTvDj+syOsI/WFn9apxaVKFT0=
+fyne.io/fyne/v2 v2.0.3-rc2.0.20210517172132-622abec582d9 h1:ylO5hUCmQf1INKJcim4ya8f45gxHcjJG0y8XsmA8mys=
+fyne.io/fyne/v2 v2.0.3-rc2.0.20210517172132-622abec582d9/go.mod h1:+U8zpTayYfnuyXGNHP6P7xgS8RAyFj6cUV6Okham/nE=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9/go.mod h1:7uhhqiBaR4CpN0k9rMjOtjpcfGd6DG2m04zQxKnWQ0I=
 github.com/akavel/rsrc v0.8.0/go.mod h1:uLoCtb9J+EyAqh+26kdrTgmzRBFPGOolLWKpdxkKq+c=
@@ -13,8 +13,8 @@ github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fyne-io/mobile v0.1.3-0.20210510125822-9a3fcd853577 h1:xCW6aKh2deFRK6wfCsdTWDg2iSUvj8zYxoHeQt3mvyc=
 github.com/fyne-io/mobile v0.1.3-0.20210510125822-9a3fcd853577/go.mod h1:/kOrWrZB6sasLbEy2JIvr4arEzQTXBTZGb3Y96yWbHY=
-github.com/go-gl/gl v0.0.0-20190320180904-bf2b1f2f34d7 h1:SCYMcCJ89LjRGwEa0tRluNRiMjZHalQZrVrvTbPh+qw=
-github.com/go-gl/gl v0.0.0-20190320180904-bf2b1f2f34d7/go.mod h1:482civXOzJJCPzJ4ZOX/pwvXBWSnzD4OKMdH4ClKGbk=
+github.com/go-gl/gl v0.0.0-20210426225639-a3bfa832c8aa h1:yiL6tST9ZuWBXiymIdM0j6yeLwMVGXDoybpXqnbJpCk=
+github.com/go-gl/gl v0.0.0-20210426225639-a3bfa832c8aa/go.mod h1:wjpnOv6ONl2SuJSxqCPVaPZibGFdSci9HFocT9qtVYM=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20210410170116-ea3d685f79fb h1:T6gaWBvRzJjuOrdCtg8fXXjKai2xSDqWTcKFUPuw8Tw=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20210410170116-ea3d685f79fb/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-ole/go-ole v1.2.5/go.mod h1:pprOEPIfldk/42T2oK7lQ4v4JSDwmV0As9GaiUsvbm0=
