@@ -20,6 +20,7 @@ type SelectFormField struct {
 
 	selectField  *SelectField
 	initialValue string
+	isRendered   bool // TODO remove when Fyne has a way to check if the widget has been renderered or not
 }
 
 // NewSelectFormField creates a new select form field.
@@ -83,12 +84,29 @@ func (s *SelectFormField) Save() {
 	}
 }
 
+// ValidationError returns the underlying validation error.
+func (s *SelectFormField) ValidationError() error {
+	if s.Validator != nil {
+		// TODO remove when Fyne has a way to check if the widget has been renderered or not
+		// means that this was called before CreateRenderer so create it by refreshing.
+		if !s.isRendered {
+			s.ExtendBaseFormField(s)
+			s.Refresh()
+		}
+		return s.validationError
+	}
+	return nil
+}
+
 // Validate validates the field.
 func (s *SelectFormField) Validate() error {
 	if s.Validator != nil {
 		s.ExtendBaseFormField(s)
-		s.validationError = s.Validator(s.selectField.Selected)
-		s.Refresh()
+		err := s.Validator(s.selectField.Selected)
+		if s.validationError != err {
+			s.validationError = err
+			s.Refresh()
+		}
 		return s.validationError
 	}
 	return nil
@@ -98,6 +116,12 @@ func (s *SelectFormField) setupSelectField() {
 	s.selectField = NewSelectField(s.Options, nil)
 	s.selectField.Selected = s.initialValue
 	s.selectField.OnChanged = func(text string) {
+		if s.Validator != nil {
+			if err := s.Validator(text); s.validationError != err {
+				s.validationError = err
+				s.Refresh()
+			}
+		}
 		if s.OnChanged != nil {
 			s.OnChanged(text)
 		}
@@ -157,6 +181,8 @@ func (s *SelectFormField) CreateRenderer() fyne.WidgetRenderer {
 		}
 		return theme.InputBackgroundColor()
 	}
+
+	s.isRendered = true // TODO remove when Fyne has a way to check if the widget has been renderered or not
 
 	return r
 }

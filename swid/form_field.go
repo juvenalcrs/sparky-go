@@ -15,6 +15,7 @@ type FormField interface {
 	fyne.Widget
 	Reset()
 	Save()
+	ValidationError() error
 	Validate() error
 
 	setParentForm(f *Form)
@@ -70,7 +71,7 @@ func (b *BaseFormField) CreateBaseRenderer(
 	label := canvas.NewText(labelText, theme.PlaceHolderColor())
 	hint := canvas.NewText(hintText, theme.PlaceHolderColor())
 	hint.TextSize = hintTextSize()
-	return &formFieldRenderer{
+	r := &formFieldRenderer{
 		labelBg:             labelBg,
 		label:               label,
 		fieldWidget:         fieldWidget,
@@ -82,6 +83,8 @@ func (b *BaseFormField) CreateBaseRenderer(
 		formField:           b,
 		objects:             []fyne.CanvasObject{labelBg, label, fieldWidget, hint},
 	}
+	r.Refresh() // ensure initial state
+	return r
 }
 
 type formFieldRenderer struct {
@@ -158,10 +161,11 @@ func (r *formFieldRenderer) Refresh() {
 	if r.isFieldFocused() || !r.isFieldEmpty() {
 		r.formField.dirty = true
 	}
-	if r.formField.labelAnim != nil && (r.isFieldFocused() || !r.isFieldEmpty()) {
+	focusedAppearance := r.isFieldFocused() && !r.formField.Disabled()
+	if r.formField.labelAnim != nil && (focusedAppearance || !r.isFieldEmpty()) {
 		r.formField.labelAnim.Forward()
 	}
-	if r.formField.labelAnim != nil && r.isFieldEmpty() && !r.isFieldFocused() {
+	if r.formField.labelAnim != nil && r.isFieldEmpty() && !focusedAppearance {
 		r.formField.labelAnim.Reverse()
 	}
 
@@ -171,14 +175,14 @@ func (r *formFieldRenderer) Refresh() {
 	r.labelBg.Refresh()
 
 	r.label.Text = r.formField.Label
-	if r.isFieldFocused() {
+	if focusedAppearance {
 		r.label.Color = theme.PrimaryColor()
 	} else {
 		r.label.Color = theme.PlaceHolderColor()
 	}
 
 	r.hint.TextSize = hintTextSize()
-	if !r.isFieldFocused() && r.formField.dirty && r.formField.validationError != nil {
+	if !r.isFieldFocused() && !r.formField.Disabled() && r.formField.dirty && r.formField.validationError != nil {
 		r.hint.Text = r.formField.validationError.Error()
 		r.hint.Color = theme.ErrorColor()
 		r.label.Color = theme.ErrorColor()

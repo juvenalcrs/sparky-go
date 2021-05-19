@@ -85,17 +85,32 @@ func (s *SelectEntryFormField) Save() {
 	}
 }
 
-// Validate validates the field.
-func (s *SelectEntryFormField) Validate() error {
+// ValidationError returns the underlying validation error.
+func (s *SelectEntryFormField) ValidationError() error {
 	if s.Validator != nil {
 		// means that this was called before CreateRenderer and
-		// then Validator field is not copy to the textField yet,
+		// then Validator field is not copy to the selectEntryField yet,
 		// so Refresh to generate it
 		if s.selectEntryField.Validator == nil {
 			s.ExtendBaseFormField(s)
 			s.Refresh()
 		}
 		return s.validationError
+	}
+	return nil
+}
+
+// Validate validates the field.
+func (s *SelectEntryFormField) Validate() error {
+	if s.Validator != nil {
+		// means that this was called before CreateRenderer and
+		// then Validator field is not copy to the selectEntryField yet,
+		// so Refresh to generate it
+		if s.selectEntryField.Validator == nil {
+			s.ExtendBaseFormField(s)
+			s.Refresh()
+		}
+		return s.selectEntryField.Validate()
 	}
 	return nil
 }

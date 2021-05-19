@@ -82,7 +82,9 @@ func (f *Form) updateSubmitButtonState() {
 func (f *Form) validate() {
 	isValid := true
 	for _, field := range f.fields {
-		if err := field.Validate(); err != nil && isValid {
+		// use only validationError because the validation is done
+		// automatically by the form fields itself.
+		if err := field.ValidationError(); err != nil && isValid {
 			isValid = false
 			// do not return here, to ensure we validate all fields
 		}

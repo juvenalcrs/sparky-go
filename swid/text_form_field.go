@@ -113,6 +113,21 @@ func (t *TextFormField) Save() {
 	}
 }
 
+// ValidationError returns the underlying validation error.
+func (t *TextFormField) ValidationError() error {
+	if t.Validator != nil {
+		// means that this was called before CreateRenderer and
+		// then Validator field is not copy to the textField yet,
+		// so Refresh to generate it
+		if t.textField.Validator == nil {
+			t.ExtendBaseFormField(t)
+			t.Refresh()
+		}
+		return t.validationError
+	}
+	return nil
+}
+
 // Validate validates the field.
 func (t *TextFormField) Validate() error {
 	if t.Validator != nil {
@@ -123,7 +138,7 @@ func (t *TextFormField) Validate() error {
 			t.ExtendBaseFormField(t)
 			t.Refresh()
 		}
-		return t.validationError
+		return t.textField.Validate()
 	}
 	return nil
 }
@@ -178,8 +193,9 @@ func (t *TextFormField) CreateRenderer() fyne.WidgetRenderer {
 			// REVIEW this won't work until it is fixed in Fyne.
 			t.textField.ActionItem = t.ActionItem
 		}
+		focusedAppearance := t.textField.focused && !t.Disabled()
 		// TODO change SetPlaceholder by r.widget.textField.PlaceHolder when it is fixed in fyne
-		if t.textField.focused && t.textField.Text == "" {
+		if focusedAppearance && t.textField.Text == "" {
 			t.textField.SetPlaceHolder(t.Placeholder)
 		} else {
 			t.textField.SetPlaceHolder("")

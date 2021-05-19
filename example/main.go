@@ -62,10 +62,11 @@ func main() {
 			WithOnSaved(func(s string) { fmt.Println("saved:", s) })
 
 		tf.Placeholder = "Write your name"
-		if n == 1 {
-			tf.SetText("wrong")
-		}
 		tf.Hint = "A hint text"
+		if n == 1 {
+			tf.SetText("wron")
+			tf.Disable()
+		}
 		return tf
 	}
 
@@ -98,6 +99,17 @@ func main() {
 	tf := swid.NewTextField()
 	tf.MaxLength = 4
 
+	e := widget.NewEntry()
+	e.Text = "wrong"
+	e.Validator = func(s string) error {
+		if s == "wrong" {
+			return errors.New("wrong")
+		}
+		return nil
+	}
+	e.Validate()
+	e.Disable()
+
 	w.SetContent(container.NewVBox(
 		f,
 		swid.NewMaskedTextField("+(999) 999-9999", "+(999) 999-9999"),
@@ -106,6 +118,7 @@ func main() {
 		swid.NewRestrictTextField(swid.RestrictInputFloat),
 		swid.NewRestrictTextField(swid.RestrictInputEmail),
 		tf,
+		e,
 		container.NewHBox(
 			f.SubmitButton("Crear", func() { f.Save() }),
 			f.ResetButton("Reset"),
