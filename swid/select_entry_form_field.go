@@ -158,8 +158,9 @@ func (s *SelectEntryFormField) CreateRenderer() fyne.WidgetRenderer {
 	updateInternalField := func() {
 		s.selectEntryField.TextStyle = s.TextStyle
 		s.selectEntryField.Wrapping = s.Wrapping
+		focusedAppearance := s.selectEntryField.focused && !s.Disabled()
 		// TODO change SetPlaceholder by r.widget.selectEntryField.PlaceHolder when it is fixed in fyne
-		if s.selectEntryField.focused && s.selectEntryField.Text == "" {
+		if focusedAppearance && s.selectEntryField.Text == "" {
 			s.selectEntryField.SetPlaceHolder(s.Placeholder)
 		} else {
 			s.selectEntryField.SetPlaceHolder("")

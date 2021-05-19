@@ -236,12 +236,12 @@ func TestTextFormField_DisableValid(t *testing.T) {
 		tf.SetText("")
 		tf.Disable()
 		assert.True(t, tf.Disabled())
-		test.AssertImageMatches(t, "text_form_field/disable_valid_empty_initial.png", w.Canvas().Capture())
+		test.AssertImageMatches(t, "text_form_field/disable_valid_empty.png", w.Canvas().Capture())
 
 		w.Canvas().Focus(tf.textField)
 		defer w.Canvas().Focus(nil)
 		assert.True(t, tf.Disabled())
-		test.AssertImageMatches(t, "text_form_field/disable_valid_empty_initial.png", w.Canvas().Capture())
+		test.AssertImageMatches(t, "text_form_field/disable_valid_empty.png", w.Canvas().Capture())
 	})
 
 	t.Run("disable_valid_notempty", func(t *testing.T) {
@@ -290,12 +290,12 @@ func TestTextFormField_DisableInvalid(t *testing.T) {
 	t.Run("disable_invalid_empty_initial", func(t *testing.T) {
 		tf.Disable()
 		assert.True(t, tf.Disabled())
-		test.AssertImageMatches(t, "text_form_field/disable_invalid_empty_initial.png", w.Canvas().Capture())
+		test.AssertImageMatches(t, "text_form_field/disable_invalid_empty.png", w.Canvas().Capture())
 
 		w.Canvas().Focus(tf.textField)
 		defer w.Canvas().Focus(nil)
 		assert.True(t, tf.Disabled())
-		test.AssertImageMatches(t, "text_form_field/disable_invalid_empty_initial.png", w.Canvas().Capture())
+		test.AssertImageMatches(t, "text_form_field/disable_invalid_empty.png", w.Canvas().Capture())
 	})
 
 	t.Run("disable_invalid_empty", func(t *testing.T) {
