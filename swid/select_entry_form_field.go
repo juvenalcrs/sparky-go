@@ -114,6 +114,9 @@ func (s *SelectEntryFormField) setupSelectEntryField(options []string) {
 	}
 	s.selectEntryField.SetOnValidationChanged(func(e error) {
 		s.validationError = e
+		// REVIEW
+		// to notify form the validation change in case of manual validation
+		s.didChange()
 		s.Refresh()
 	})
 }

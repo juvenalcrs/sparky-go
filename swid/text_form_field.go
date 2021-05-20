@@ -142,6 +142,9 @@ func (t *TextFormField) setupTextField() {
 	}
 	t.textField.SetOnValidationChanged(func(e error) {
 		t.validationError = e
+		// REVIEW
+		// to notify form the validation change in case of manual validation
+		t.didChange()
 		t.Refresh()
 	})
 }
