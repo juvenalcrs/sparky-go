@@ -65,26 +65,6 @@ func NewMaskedTextFormField(label, initialText, mask, placeHolder string) *TextF
 }
 
 // ===============================================================
-// Constructor shortcuts
-// ===============================================================
-
-// WithValidator adds a validator to the text form field. This function does not
-// call Refresh() and its use is only to define validators when creating the widget
-// in the same line.
-func (t *TextFormField) WithValidator(v fyne.StringValidator) *TextFormField {
-	t.Validator = v
-	return t
-}
-
-// WithOnSaved adds OnSaved callback to the text form field. This function does not
-// call Refresh() and its use is only to add OnSaved callback when creating the widget
-// in the same line.
-func (t *TextFormField) WithOnSaved(onSaved func(s string)) *TextFormField {
-	t.OnSaved = onSaved
-	return t
-}
-
-// ===============================================================
 // Methods
 // ===============================================================
 

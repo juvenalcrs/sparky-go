@@ -52,14 +52,14 @@ func main() {
 			forbidden = ""
 		}
 
-		tf := swid.NewTextFormField(fmt.Sprintf("Name %d", n), "").
-			WithValidator(func(s string) error {
-				if s == forbidden {
-					return errors.New("wrong")
-				}
-				return nil
-			}).
-			WithOnSaved(func(s string) { fmt.Println("saved:", s) })
+		tf := swid.NewTextFormField(fmt.Sprintf("Name %d", n), "")
+		tf.Validator = func(s string) error {
+			if s == forbidden {
+				return errors.New("wrong")
+			}
+			return nil
+		}
+		tf.OnSaved = func(s string) { fmt.Println("saved:", s) }
 
 		tf.Placeholder = "Write your name"
 		tf.Hint = "A hint text"
@@ -77,12 +77,12 @@ func main() {
 	mf.Hint = "A masked form field"
 	mf.ActionItem = widget.NewIcon(theme.ComputerIcon())
 
-	sef := swid.NewSelectEntryFormField("OS", "", []string{"Mac", "Windows"}).
-		WithValidator(svalid.NotEmpty())
+	sef := swid.NewSelectEntryFormField("OS", "", []string{"Mac", "Windows"})
+	sef.Validator = svalid.NotEmpty()
 	sef.Hint = "Your favorite OS"
 
-	sf := swid.NewSelectFormField("Car", "", []string{"Audi", "Toyota"}).
-		WithOnSaved(func(s string) { fmt.Println(s) })
+	sf := swid.NewSelectFormField("Car", "", []string{"Audi", "Toyota"})
+	sf.OnSaved = func(s string) { fmt.Println(s) }
 	sf.Hint = "Your car"
 
 	f := swid.NewForm(2,

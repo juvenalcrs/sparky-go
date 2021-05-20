@@ -32,26 +32,6 @@ func NewSelectEntryFormField(label, initialValue string, options []string) *Sele
 }
 
 // ===============================================================
-// Constructor shortcuts
-// ===============================================================
-
-// WithValidator adds a validator to the text form field. This function does not
-// call Refresh() and its use is only to define validators when creating the widget
-// in the same line.
-func (s *SelectEntryFormField) WithValidator(v fyne.StringValidator) *SelectEntryFormField {
-	s.Validator = v
-	return s
-}
-
-// WithOnSaved adds OnSaved callback to the text form field. This function does not
-// call Refresh() and its use is only to add OnSaved callback when creating the widget
-// in the same line.
-func (s *SelectEntryFormField) WithOnSaved(onSaved func(s string)) *SelectEntryFormField {
-	s.OnSaved = onSaved
-	return s
-}
-
-// ===============================================================
 // Methods
 // ===============================================================
 
