@@ -8,8 +8,8 @@ on:
 
 jobs:
 
-  build:
-    runs-on: [ubuntu-latest, windows-latest, macos-latest]
+  go_tests:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
