@@ -62,7 +62,9 @@ func (s *SelectEntryFormField) Text() string {
 
 // SetText manually sets the text of the TextFormField to the given text value.
 func (s *SelectEntryFormField) SetText(text string) {
-	s.selectEntryField.Text = text
+	// use this instead t.textField.Text to ensure we trigger the onChanged callback.
+	// TODO should this be fixed by Fyne??
+	s.selectEntryField.SetText(text)
 	s.Refresh() // refresh the whole widget
 }
 
