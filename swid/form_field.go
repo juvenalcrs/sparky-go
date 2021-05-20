@@ -81,7 +81,7 @@ func (b *BaseFormField) CreateBaseRenderer(
 		isFieldFocused:      isFieldFocused,
 		updateInternalField: updateInternalField,
 		formField:           b,
-		objects:             []fyne.CanvasObject{labelBg, label, fieldWidget, hint},
+		objects:             []fyne.CanvasObject{labelBg, fieldWidget, label, hint},
 	}
 	r.Refresh() // ensure initial state
 	return r
@@ -222,8 +222,10 @@ type labelBackground struct {
 	widget.BaseWidget
 	FillColor color.Color
 
-	hovered     bool
 	hoverable   desktop.Hoverable
+	disableable fyne.Disableable
+
+	hovered     bool
 	cursor      desktop.Cursor
 	fieldWidget fyne.Widget
 }
@@ -239,6 +241,9 @@ func newLabelBackground(color color.Color, fieldWidget fyne.Widget) *labelBackgr
 	}
 	if hoverable, ok := fieldWidget.(desktop.Hoverable); ok {
 		b.hoverable = hoverable
+	}
+	if disableable, ok := fieldWidget.(fyne.Disableable); ok {
+		b.disableable = disableable
 	}
 	return b
 }
@@ -309,7 +314,11 @@ func (r *labelBackgroundRenderer) Objects() []fyne.CanvasObject {
 
 func (r *labelBackgroundRenderer) Refresh() {
 	r.rect.FillColor = r.widget.FillColor
-	if r.widget.hovered {
+	disabled := false
+	if r.widget.disableable != nil {
+		disabled = r.widget.disableable.Disabled()
+	}
+	if r.widget.hovered && !disabled {
 		r.rect.FillColor = theme.HoverColor()
 	}
 	r.rect.Refresh()

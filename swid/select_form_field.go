@@ -176,7 +176,7 @@ func (s *SelectFormField) CreateRenderer() fyne.WidgetRenderer {
 	)
 
 	r.(*formFieldRenderer).labelBgColor = func() color.Color {
-		if s.selectField.hovered {
+		if s.selectField.hovered && !s.selectField.Disabled() {
 			return theme.HoverColor()
 		}
 		return theme.InputBackgroundColor()

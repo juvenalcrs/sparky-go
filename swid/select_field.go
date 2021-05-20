@@ -94,6 +94,9 @@ type selectFieldRenderer struct {
 
 func (r *selectFieldRenderer) Refresh() {
 	r.WidgetRenderer.Refresh()
+	if r.widget.Disabled() {
+		return
+	}
 	bg := r.WidgetRenderer.Objects()[0].(*canvas.Rectangle)
 	if r.widget.focused {
 		bg.FillColor = theme.InputBackgroundColor()

@@ -110,6 +110,9 @@ func main() {
 	e.Validate()
 	e.Disable()
 
+	sl := swid.NewSelectFormField("Name", "", []string{"Peter", "Ana"})
+	sl.Disable()
+
 	w.SetContent(container.NewVBox(
 		f,
 		swid.NewMaskedTextField("+(999) 999-9999", "+(999) 999-9999"),
@@ -119,6 +122,7 @@ func main() {
 		swid.NewRestrictTextField(swid.RestrictInputEmail),
 		tf,
 		e,
+		sl,
 		container.NewHBox(
 			f.SubmitButton("Crear", func() { f.Save() }),
 			f.ResetButton("Reset"),
