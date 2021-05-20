@@ -78,8 +78,8 @@ func TestCustomForm(t *testing.T) {
 	))
 
 	submitted := false
-	submitButton := f.SubmitButton("Create", func() { submitted = true })
-	rstButton := f.ResetButton("Reset")
+	submitButton := f.CreateSubmitButton("Create", func() { submitted = true })
+	rstButton := f.CreateResetButton("Reset")
 
 	w := test.NewWindow(container.NewVBox(f, submitButton, rstButton))
 
@@ -139,8 +139,8 @@ func TestForm(t *testing.T) {
 	f := NewForm(2, name, lastName)
 
 	submitted := false
-	submitButton := f.SubmitButton("Create", func() { submitted = true })
-	rstButton := f.ResetButton("Reset")
+	submitButton := f.CreateSubmitButton("Create", func() { submitted = true })
+	rstButton := f.CreateResetButton("Reset")
 
 	w := test.NewWindow(container.NewVBox(f, submitButton, rstButton))
 
@@ -203,4 +203,73 @@ func TestForm_Save(t *testing.T) {
 	assert.Equal(t, "Peter", data.Name)
 	assert.Equal(t, "Parker", data.LastName)
 	assert.Equal(t, 45, data.Age)
+}
+
+func TestForm_MultipleSubmitButtons(t *testing.T) {
+	test.ApplyTheme(t, theme.LightTheme())
+
+	name := NewTextFormField("Name", "")
+	name.Validator = func(s string) error {
+		if s == "" {
+			return errors.New("can't be empty")
+		}
+		return nil
+	}
+	name.Hint = "Your name"
+
+	lastName := NewTextFormField("LastName", "")
+	lastName.Validator = func(s string) error {
+		if s == "last" {
+			return errors.New("can't be last")
+		}
+		return nil
+	}
+	lastName.Hint = "Your lastname"
+
+	f := NewForm(2, name, lastName)
+
+	signUp := false
+	signUpButton := f.CreateSubmitButton("Sign-up", func() { signUp = true })
+
+	signIn := false
+	signInButton := f.CreateSubmitButton("Sign-in", func() { signIn = true })
+
+	rstButton := f.CreateResetButton("Reset")
+
+	w := test.NewWindow(container.NewVBox(
+		f,
+		signInButton,
+		signUpButton,
+		rstButton,
+	))
+	w.Resize(fyne.NewSize(280, 210))
+
+	test.AssertImageMatches(t, "form/multi_submitbtn_initial.png", w.Canvas().Capture())
+	test.Tap(signInButton)
+	test.Tap(signUpButton)
+	assert.False(t, signUp)
+	assert.False(t, signIn)
+
+	name.SetText("a") // simulate dirty
+	name.SetText("")
+	lastName.SetText("last")
+
+	test.AssertImageMatches(t, "form/multi_submitbtn_invalid.png", w.Canvas().Capture())
+	test.Tap(signInButton)
+	test.Tap(signUpButton)
+	assert.False(t, signUp)
+	assert.False(t, signIn)
+
+	name.SetText("Peter")
+	lastName.SetText("Pérez")
+	test.AssertImageMatches(t, "form/multi_submitbtn_valid.png", w.Canvas().Capture())
+	test.Tap(signInButton)
+	assert.True(t, signIn)
+	assert.False(t, signUp)
+	test.Tap(signUpButton)
+	assert.True(t, signIn)
+	assert.True(t, signUp)
+
+	test.Tap(rstButton)
+	test.AssertImageMatches(t, "form/multi_submitbtn_initial.png", w.Canvas().Capture())
 }

@@ -124,8 +124,8 @@ func main() {
 		e,
 		sl,
 		container.NewHBox(
-			f.SubmitButton("Crear", func() { f.Save() }),
-			f.ResetButton("Reset"),
+			f.CreateSubmitButton("Crear", func() { f.Save() }),
+			f.CreateResetButton("Reset"),
 		),
 	))
 

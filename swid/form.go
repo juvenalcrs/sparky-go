@@ -13,11 +13,11 @@ type Form struct {
 	OnChanged           func()
 	OnValidationChanged func(valid bool)
 
-	container    *fyne.Container
-	cols         int
-	fields       []FormField
-	isValid      bool
-	submitButton *widget.Button
+	container     *fyne.Container
+	cols          int
+	fields        []FormField
+	isValid       bool
+	submitButtons []*widget.Button
 }
 
 // NewForm creates a new form widget.
@@ -65,33 +65,28 @@ func (f *Form) Save() {
 	}
 }
 
-// SubmitButton returns the form submit button.
-func (f *Form) SubmitButton(text string, onTapped func()) *widget.Button {
-	if f.submitButton != nil {
-		f.submitButton.Text = text
-		f.submitButton.OnTapped = onTapped
-		f.submitButton.Refresh()
-		return f.submitButton
-	}
-	f.submitButton = widget.NewButton(text, onTapped)
-	f.submitButton.Importance = widget.HighImportance
-	return f.submitButton
+// CreateSubmitButton creates a new form submit button.
+func (f *Form) CreateSubmitButton(text string, onTapped func()) *widget.Button {
+	btn := widget.NewButton(text, onTapped)
+	btn.Importance = widget.HighImportance
+	f.submitButtons = append(f.submitButtons, btn)
+	return btn
 }
 
-// ResetButton returns the form reset button.
-func (f *Form) ResetButton(text string) *widget.Button {
+// CreateResetButton creates a new form reset button.
+func (f *Form) CreateResetButton(text string) *widget.Button {
 	return widget.NewButton(text, f.Reset)
 }
 
 // updates submit button state if there is one.
 func (f *Form) updateSubmitButtonState() {
-	if f.submitButton == nil {
-		return
-	}
-	if f.isValid {
-		f.submitButton.Enable()
-	} else {
-		f.submitButton.Disable()
+	isValid := f.isValid
+	for _, btn := range f.submitButtons {
+		if isValid {
+			btn.Enable()
+		} else {
+			btn.Disable()
+		}
 	}
 }
 
