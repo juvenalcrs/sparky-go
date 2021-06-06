@@ -7,7 +7,9 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/theme"
+	"github.com/fpabl0/sparky-go/svalid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSelectEntryFormField_EmptyValidator(t *testing.T) {
@@ -24,16 +26,21 @@ func TestSelectEntryFormField_EmptyValidator(t *testing.T) {
 	defer w.Close()
 	w.Resize(fyne.NewSize(120, 80))
 
-	test.AssertImageMatches(t, "select_entry_form_field/empty_validator_initial.png", w.Canvas().Capture())
+	for i := 0; i < 2; i++ {
+		test.AssertImageMatches(t, "select_entry_form_field/empty_validator_initial.png", w.Canvas().Capture())
 
-	w.Canvas().Focus(tf.selectEntryField)
+		w.Canvas().Focus(tf.selectEntryField)
 
-	test.AssertImageMatches(t, "select_entry_form_field/empty_validator_focused.png", w.Canvas().Capture())
+		test.AssertImageMatches(t, "select_entry_form_field/empty_validator_focused.png", w.Canvas().Capture())
 
-	w.Canvas().Focus(nil)
+		w.Canvas().Focus(nil)
 
-	// TODO this needs to be updated when Fyne fixes this (see the underline color and no icon)
-	test.AssertImageMatches(t, "select_entry_form_field/empty_validator_unfocused.png", w.Canvas().Capture())
+		test.AssertImageMatches(t, "select_entry_form_field/empty_validator_unfocused.png", w.Canvas().Capture())
+
+		// same sequence should be repeated if we reset the select entry form field.
+		tf.Reset()
+	}
+
 }
 
 func TestSelectEntryFormField_Validation(t *testing.T) {
@@ -323,4 +330,23 @@ func TestSelectEntryFormField_DisableInvalid(t *testing.T) {
 		assert.True(t, tf.Disabled())
 		test.AssertImageMatches(t, "select_entry_form_field/disable_invalid_notempty.png", w.Canvas().Capture())
 	})
+}
+
+func TestSelectEntryFormField_EmptyValidatorReset(t *testing.T) {
+	tf := NewSelectEntryFormField("Name", "", []string{"Peter", "Andrea"})
+	tf.Validator = svalid.NotEmpty()
+	tf.Placeholder = "Your name"
+
+	test.WidgetRenderer(tf) // force renderer creation
+
+	require.NotNil(t, tf.validationError)
+	emptyErr := tf.validationError
+
+	tf.SetText("Peter")
+	assert.Nil(t, tf.validationError)
+
+	tf.Reset()
+	// the validation error should not be changed
+	assert.NotNil(t, tf.validationError)
+	assert.Equal(t, emptyErr, tf.validationError)
 }

@@ -74,6 +74,15 @@ func (s *SelectField) MouseOut() {
 	}
 }
 
+// Tapped overrides widget.Select method.
+func (s *SelectField) Tapped(ev *fyne.PointEvent) {
+	if s.Disabled() {
+		return
+	}
+	fyne.CurrentApp().Driver().CanvasForObject(s).Focus(s)
+	s.Select.Tapped(ev)
+}
+
 // ===============================================================
 // Renderer
 // ===============================================================

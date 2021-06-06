@@ -18,6 +18,7 @@ type SelectEntryFormField struct {
 
 	selectEntryField *SelectEntryField
 	initialText      string
+	resetOverrideErr bool
 }
 
 // NewSelectEntryFormField creates a new select entry form field.
@@ -57,6 +58,9 @@ func (s *SelectEntryFormField) SetOptions(options []string) {
 func (s *SelectEntryFormField) Reset() {
 	s.dirty = false
 	s.SetText(s.initialText)
+	s.resetOverrideErr = true
+	s.selectEntryField.SetValidationError(nil)
+	s.resetOverrideErr = false
 	s.didChange()
 }
 
@@ -109,10 +113,20 @@ func (s *SelectEntryFormField) setupSelectEntryField(options []string) {
 			s.Refresh()
 		}
 	}
-	s.selectEntryField.onFocusChanged = func(bool) {
+	s.selectEntryField.onFocusChanged = func(focused bool) {
+		if focused && !s.dirty {
+			// handle special case to validate automatically a field
+			// after a Reset call
+			s.Validate()
+		}
 		s.Refresh()
 	}
 	s.selectEntryField.SetOnValidationChanged(func(e error) {
+		// avoid overriding the validationError when we force it to nil by calling
+		// Reset.
+		if s.resetOverrideErr {
+			return
+		}
 		s.validationError = e
 		// REVIEW
 		// to notify form the validation change in case of manual validation

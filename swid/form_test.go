@@ -65,6 +65,10 @@ func TestCustomForm(t *testing.T) {
 	}
 	favoriteColor.Hint = "Your favorite color"
 
+	dogName := NewSelectEntryFormField("Dog's name", "", []string{"Pelusa", "Firulais"})
+	dogName.Validator = svalid.NotEmpty()
+	dogName.Hint = "Your dog's name"
+
 	f := NewCustomForm(container.NewVBox(
 		title,
 		container.NewGridWithColumns(2,
@@ -75,6 +79,7 @@ func TestCustomForm(t *testing.T) {
 		address2,
 		code,
 		favoriteColor,
+		dogName,
 	))
 
 	submitted := false
@@ -94,6 +99,8 @@ func TestCustomForm(t *testing.T) {
 	address2.SetText("")  // put empty to show the error
 	code.SetText("1")
 	favoriteColor.SetText("white")
+	dogName.SetText("a") // just to make it dirty
+	dogName.SetText("")  // put empty to show the error
 
 	assert.False(t, f.IsValid())
 	test.Tap(submitButton)
@@ -108,6 +115,7 @@ func TestCustomForm(t *testing.T) {
 	address2.SetText("Dept. 203")
 	code.SetText("189")
 	favoriteColor.SetText("Yellow")
+	dogName.SetText("Firulais")
 
 	assert.True(t, f.IsValid())
 	test.AssertImageMatches(t, "form/custom_form_valid.png", w.Canvas().Capture())

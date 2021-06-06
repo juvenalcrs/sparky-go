@@ -19,9 +19,10 @@ type TextFormField struct {
 	OnChanged func(s string)
 	OnSaved   func(s string)
 
-	textField       *TextField
-	initialText     string
-	isPasswordField bool
+	textField        *TextField
+	initialText      string
+	isPasswordField  bool
+	resetOverrideErr bool
 }
 
 // NewTextFormField creates a new special text field for Forms.
@@ -85,6 +86,9 @@ func (t *TextFormField) SetText(text string) {
 func (t *TextFormField) Reset() {
 	t.dirty = false
 	t.SetText(t.initialText)
+	t.resetOverrideErr = true
+	t.textField.SetValidationError(nil)
+	t.resetOverrideErr = false
 	t.didChange()
 }
 
@@ -137,10 +141,20 @@ func (t *TextFormField) setupTextField() {
 			t.Refresh()
 		}
 	}
-	t.textField.onFocusChanged = func(bool) {
+	t.textField.onFocusChanged = func(focused bool) {
+		if focused && !t.dirty {
+			// handle special case to validate automatically a field
+			// after a Reset call
+			t.Validate()
+		}
 		t.Refresh()
 	}
 	t.textField.SetOnValidationChanged(func(e error) {
+		// avoid overriding the validationError when we force it to nil by calling
+		// Reset.
+		if t.resetOverrideErr {
+			return
+		}
 		t.validationError = e
 		// REVIEW
 		// to notify form the validation change in case of manual validation
