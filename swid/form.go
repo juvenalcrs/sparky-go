@@ -102,7 +102,14 @@ func (f *Form) validate() {
 			// do not return here, to ensure we validate all fields
 		}
 	}
+	if isValid == f.isValid {
+		return
+	}
 	f.isValid = isValid
+	f.updateSubmitButtonState()
+	if f.OnValidationChanged != nil {
+		f.OnValidationChanged(f.isValid)
+	}
 }
 
 // fieldDidChange must be called from a form field.
@@ -110,15 +117,7 @@ func (f *Form) fieldDidChange() {
 	if f.OnChanged != nil {
 		f.OnChanged()
 	}
-	prev := f.isValid
 	f.validate()
-	if prev == f.isValid {
-		return
-	}
-	f.updateSubmitButtonState()
-	if f.OnValidationChanged != nil {
-		f.OnValidationChanged(f.isValid)
-	}
 }
 
 // ===============================================================
