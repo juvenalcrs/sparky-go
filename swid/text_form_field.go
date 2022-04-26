@@ -36,6 +36,13 @@ func NewTextFormField(label, initialText string) *TextFormField {
 	return t
 }
 
+//newTextFormField creates a new special multiline text field for Forms.
+func NewMultiLineTextField(label, initialText string) *TextFormField {
+	t := NewTextFormField(label, initialText)
+	t.textField.MultiLine = true
+	return t
+}
+
 // NewRestrictTextFormField creates a new text form field that accepts an input
 // type.
 func NewRestrictTextFormField(label, initialText string, input RestrictInput) *TextFormField {
